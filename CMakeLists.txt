@@ -1,3 +1,19 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.1.1)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.1.1)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
+set(PICO_BOARD pico CACHE STRING "Board type")
+
 # Generated Cmake Pico project file
 
 cmake_minimum_required(VERSION 3.13)
@@ -17,10 +33,13 @@ pico_sdk_init()
 add_executable(pico-mcp2515
     # Library executables
     include/mcp2515/mcp2515.cpp
-
+    include/pico_neopixels/Adafruit_NeoPixel.cpp
     # Main executalbes
     src/pico-mcp2515.cpp
+    src/NeoPixel_utils.cpp
 )
+
+
 
 # Add MCP2515 Lib
 target_include_directories(pico-mcp2515 PUBLIC include/)
@@ -31,10 +50,21 @@ pico_set_program_version(pico-mcp2515 "0.1")
 pico_enable_stdio_uart(pico-mcp2515 0)
 pico_enable_stdio_usb(pico-mcp2515 1)
 
+# Add Neo_pixel Lib
+add_library(pico_neopixel INTERFACE)
+
+pico_generate_pio_header(pico_neopixel ${CMAKE_CURRENT_LIST_DIR}/include/pico_neopixels/ws2812byte.pio)
+
+
 # Add any user requested libraries
 target_link_libraries(pico-mcp2515
     pico_stdlib
+    pico_multicore
     hardware_spi
+    hardware_pio
+    pico_malloc 
+    pico_mem_ops
+    pico_neopixel
 )
 
 pico_add_extra_outputs(pico-mcp2515)
